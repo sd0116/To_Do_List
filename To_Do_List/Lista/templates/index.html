@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List PWA</title>
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body>
+    <h1>To-Do List</h1>
+
+    <!-- Formulario para añadir una nueva tarea -->
+    <form id="task-form" method="POST">
+        {% csrf_token %}
+        <input type="text" id="task" placeholder="Agregar tarea">
+        <button type="submit">Agregar tarea</button>
+    </form>
+
+    <!-- Lista de tareas -->
+    <ul id="task-list"></ul>
+
+
+
+    <script src="{% static 'js/app.js' %}"></script>
+
+</body>
+
+</html>
