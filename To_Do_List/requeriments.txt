@@ -1,0 +1,34 @@
+REQUERIMIENTOS PARA EJECUTAR LA APP
+
+Estar dentro de la carpeta donde esta el manage.py e instalar lo siguiente:
+
+----------------------------------------------------
+
+1. INSTALAR ENTORNO VIRTUAL:
+
+py -m venv venv  (depende de lo que editaste en la variable de entorno ya sea "py" o "Python")
+
+----------------------------------------------------
+
+2. EJECUTAR ENTORNO VIRTUAL
+
+venv\Scripts\actívate
+
+----------------------------------------------------
+
+3. INSTALAR DJANGO:
+
+pip install django
+
+----------------------------------------------------
+
+4. VERIFICAR VERSION DE DJANGO
+
+py -m django --versión
+
+----------------------------------------------------
+
+5. EJECUTAR APP:
+
+py manage.py runserver
+
