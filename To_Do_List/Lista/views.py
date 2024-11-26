@@ -2,8 +2,7 @@ from django.http import JsonResponse, QueryDict
 from django.views.decorators.csrf import csrf_exempt
 from .models import Task
 from django.shortcuts import render
-from . import views
-
+import json
 
 def index(request):
     return render(request, 'index.html')
@@ -43,3 +42,16 @@ def update_task(request, task_id):
             task.save()
             return JsonResponse({"status": "success"})
         return JsonResponse({"status": "error", "message": "Title is required"}, status=400)
+
+# Función para eliminar múltiples tareas
+@csrf_exempt
+def delete_multiple_tasks(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)  # Procesar los datos enviados en el cuerpo de la solicitud
+        task_ids = data.get('task_ids', [])  # Obtener la lista de IDs de tareas
+
+        if task_ids:
+            Task.objects.filter(id__in=task_ids).delete()  # Eliminar las tareas cuyos IDs están en la lista
+            return JsonResponse({"status": "success", "deleted_count": len(task_ids)})
+
+        return JsonResponse({"status": "error", "message": "No tasks selected"}, status=400)

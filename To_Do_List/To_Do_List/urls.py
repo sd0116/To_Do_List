@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.urls import path
 from Lista import views
@@ -14,7 +13,8 @@ urlpatterns = [
     path('add-task/', views.add_task, name='add_task'),
     path('delete-task/<int:task_id>/', views.delete_task, name='delete_task'),
     path('update-task/<int:task_id>/', views.update_task, name='update_task'),
-
+    path('delete-tasks/', views.delete_multiple_tasks, name='delete_multiple_tasks'),  # Nueva ruta para eliminar múltiples tareas
 ]
+
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
