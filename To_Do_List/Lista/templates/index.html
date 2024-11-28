@@ -14,17 +14,17 @@
 
 <body>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/static/service-worker.js')
-            .then(function(registration) {
-              console.log('Service Worker registrado con éxito en el ámbito:', registration.scope);
-            })
-            .catch(function(error) {
-              console.log('Error al registrar el Service Worker:', error);
-            });
-        }
-      </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/static/service-worker.js')
+        .then(function(registration) {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(function(error) {
+          console.log('Service Worker registration failed:', error);
+        });
+    }
+  </script>
       
     <header>
         <h1>To-Do List</h1>
