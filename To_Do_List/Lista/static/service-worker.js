@@ -1,21 +1,19 @@
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open('my-app-cache').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/static/js/main.js',
-        '/static/css/styles.css',
-        '/static/images/icon.png',
-        '/static/manifest.json',
-      ]);
-    })
-  );
-});
+const archivosACachear = [
+  '/',
+  '/index.html',
+  '/static/icons/icon-192x192.png',  // Verifica que esta ruta sea correcta
+  '/styles.css',
+  '/scripts.js',
+];
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+self.addEventListener('install', evento => {
+  evento.waitUntil(
+    caches.open('nombreCache')
+      .then(cache => {
+        return cache.addAll(archivosACachear);
+      })
+      .catch(error => {
+        console.error('Error al agregar archivos al caché:', error);
+      })
   );
 });
