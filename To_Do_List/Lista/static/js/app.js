@@ -1,6 +1,106 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadTasks();
 
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const task = document.getElementById('task').value;
+    
+        fetch('/add-task/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                'task': task
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                loadTasks(); // Recargar la lista de tareas después de agregar
+                document.getElementById('task').value = ''; // Limpiar el campo de entrada
+            }
+        })
+        .catch(error => {
+            console.error('Error al agregar la tarea:', error);
+    
+            // Mostrar una notificación al usuario
+            alert('No se pudo enviar la tarea porque no hay conexión a Internet. La tarea se almacenará localmente.');
+    
+            // Guardar la tarea en el almacenamiento local
+            saveTaskLocally(task);
+        });
+    }
+
+    
+
+    function saveTaskLocally(task) {
+        const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
+        offlineTasks.push(task);
+        localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
+    
+        // Actualizar la interfaz de usuario para mostrar la tarea localmente
+        addTaskToUI(task, true);
+    }
+    
+    function addTaskToUI(task, isOffline = false) {
+        const taskList = document.getElementById('task-list');
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <input type="checkbox" class="task-checkbox">
+            <span class="task-title">${task}</span>
+            ${isOffline ? '<span class="offline-badge">Offline</span>' : ''}
+        `;
+        taskList.appendChild(li);
+    }
+    
+
+
+    window.addEventListener('online', () => {
+        const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
+    
+        offlineTasks.forEach(task => {
+            fetch('/add-task/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'task': task
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    console.log(`Tarea sincronizada: ${task}`);
+                }
+            })
+            .catch(error => {
+                console.error(`Error al sincronizar la tarea: ${task}`, error);
+            });
+        });
+    
+        // Limpiar las tareas almacenadas localmente después de sincronizarlas
+        localStorage.removeItem('offlineTasks');
+    });
+
+    
+    window.addEventListener('offline', () => {
+        document.getElementById('connection-status').style.display = 'block';
+    });
+    
+    window.addEventListener('online', () => {
+        document.getElementById('connection-status').style.display = 'none';
+    });
+    
+
+
+
+
+
+
     // Función para cargar las tareas al iniciar la página
     function loadTasks() {
         fetch('/tasks/')

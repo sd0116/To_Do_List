@@ -37,6 +37,11 @@
     </header>
 
     <main>
+
+      <div id="connection-status" style="display: none; color: red;">
+        Estás sin conexión a Internet. Algunas funcionalidades pueden no estar disponibles.
+    </div>
+    
         <!-- Formulario para añadir una nueva tarea -->
         <form id="task-form" method="POST">
             {% csrf_token %}
