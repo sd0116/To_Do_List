@@ -25,8 +25,9 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('task-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const task = document.getElementById('task').value;
-
+    
         if (navigator.onLine) {
+            // Intentar enviar la tarea al servidor
             fetch('/add-task/', {
                 method: 'POST',
                 headers: {
@@ -35,28 +36,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: new URLSearchParams({ task: task }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        loadTasks();
-                        document.getElementById('task').value = '';
-                    }
-                })
-                .catch(error => console.error('Error al agregar la tarea:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    loadTasks(); // Recargar tareas
+                    document.getElementById('task').value = ''; // Limpiar el campo
+                }
+            })
+            .catch(error => console.error('Error al enviar la tarea:', error));
         } else {
+            // Guardar la tarea localmente
             saveTaskLocally(task);
-            alert('Tarea guardada localmente. Se sincronizará cuando haya conexión.');
+            alert('Tarea guardada localmente. Se sincronizará cuando estés online.');
         }
     });
 
     // Guardar tareas localmente
     function saveTaskLocally(task) {
         const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
-        offlineTasks.push(task);
-        localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
-        console.log('Tarea guardada localmente:', task);
+        offlineTasks.push(task); // Agregar la tarea al array local
+        localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks)); // Guardar en localStorage
+        console.log(`Tarea guardada localmente: ${task}`);
     }
-
+    
     // Sincronizar tareas al recuperar conexión
     window.addEventListener('online', () => {
         const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
