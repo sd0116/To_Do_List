@@ -1,31 +1,30 @@
 const CACHE_NAME = 'to-do-list-cache-v1';
-const archivosACachear = [
+const OFFLINE_URLS = [
   '/',
   '/index.html',
-  '/static/icons/icon-192x192.png',
-  '/static/icons/icon-512x512.png',
   '/static/css/styles.css',
-  '/static/js/app.js'
+  '/static/js/app.js',
+  '/static/icons/icon-192x192.png',
 ];
 
-// Instalar el Service Worker y cachear archivos necesarios
+// Instalar el Service Worker
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('Archivos en caché durante la instalación:', archivosACachear);
-      return cache.addAll(archivosACachear);
+      console.log('Caché cargado:', OFFLINE_URLS);
+      return cache.addAll(OFFLINE_URLS);
     })
   );
 });
 
-// Activar el Service Worker y limpiar cachés antiguos
+// Activar el Service Worker
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== CACHE_NAME) {
-            console.log('Borrando caché antiguo:', cache);
+            console.log('Eliminando caché antiguo:', cache);
             return caches.delete(cache);
           }
         })
@@ -34,7 +33,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Interceptar solicitudes y manejar `GET` y `POST`
+// Interceptar solicitudes para manejar offline
 self.addEventListener('fetch', event => {
   if (event.request.method === 'GET') {
     event.respondWith(
@@ -51,17 +50,17 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// Guardar solicitudes `POST` fallidas en IndexedDB o localStorage
+// Guardar solicitudes `POST` fallidas
 function guardarSolicitudOffline(request) {
   return request.clone().text().then(body => {
     const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
     offlineRequests.push({
       url: request.url,
       method: request.method,
-      body: body
+      body: body,
     });
     localStorage.setItem('offlineRequests', JSON.stringify(offlineRequests));
-    console.log('Solicitud guardada para sincronización offline:', request.url);
+    console.log('Solicitud guardada localmente:', request.url);
     return new Response(
       JSON.stringify({ status: 'offline', message: 'Solicitud almacenada para sincronización.' }),
       { headers: { 'Content-Type': 'application/json' } }
@@ -69,7 +68,7 @@ function guardarSolicitudOffline(request) {
   });
 }
 
-// Sincronizar solicitudes cuando vuelva la conexión
+// Sincronizar solicitudes offline al volver la conexión
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-tasks') {
     event.waitUntil(
@@ -78,14 +77,14 @@ self.addEventListener('sync', event => {
   }
 });
 
-// Función para sincronizar solicitudes guardadas
+// Función para sincronizar solicitudes offline
 function sincronizarSolicitudesOffline() {
   const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
   const promesas = offlineRequests.map(request => {
     return fetch(request.url, {
       method: request.method,
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: request.body
+      body: request.body,
     });
   });
 
