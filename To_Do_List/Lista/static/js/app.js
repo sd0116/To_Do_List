@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(tasks => {
                 const taskList = document.getElementById('task-list');
                 taskList.innerHTML = ''; // Limpia la lista antes de cargar
-    
+
                 tasks.forEach(task => {
                     const li = document.createElement('li');
                     li.innerHTML = `
@@ -19,12 +19,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     `;
                     taskList.appendChild(li);
                 });
-    
+
                 // Configura los eventos dinámicos para los botones
                 setupDynamicListeners();
             });
     }
-    
+
+    // Configura los eventos dinámicos para los botones
+    function setupDynamicListeners() {
+        // Listener para editar tareas
+        document.querySelectorAll('.edit-task').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const title = this.dataset.title;
+                editTask(id, title); // Llama a la función `editTask`
+            });
+        });
+
+        // Listener para eliminar tareas
+        document.querySelectorAll('.delete-task').forEach(button => {
+            button.addEventListener('click', function () {
+                const id = this.dataset.id;
+                deleteTask(id); // Llama a la función `deleteTask`
+            });
+        });
+
+        // Listener para checkboxes
+        setupCheckboxListeners();
+    }
 
     // Función para añadir una nueva tarea
     document.getElementById('task-form').addEventListener('submit', function (e) {
