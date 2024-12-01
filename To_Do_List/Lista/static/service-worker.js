@@ -1,102 +1,111 @@
+importScripts('https://cdnjs.cloudflare.com/ajax/libs/idb/7.0.1/idb.min.js');
+
 const CACHE_NAME = 'to-do-list-cache-v1';
 const OFFLINE_URLS = [
-  '/',
-  '/index.html',
-  '/static/css/styles.css',
-  '/static/js/app.js',
-  '/static/icons/icon-192x192.png',
+    '/',
+    '/index.html',
+    '/static/css/styles.css',
+    '/static/js/app.js',
+    '/static/icons/icon-192x192.png',
 ];
+
+const dbPromise = idb.openDB('offline-requests', 1, {
+    upgrade(db) {
+        db.createObjectStore('requests', { keyPath: 'id', autoIncrement: true });
+    },
+});
 
 // Almacenar recursos en caché al instalar
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log('Archivos en caché:');
-      return cache.addAll(OFFLINE_URLS);
-    })
-  );
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => {
+            console.log('Archivos en caché:');
+            return cache.addAll(OFFLINE_URLS);
+        })
+    );
 });
 
 // Activar el Service Worker y limpiar cachés antiguas
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys => {
-      return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('Eliminando caché antigua:', key);
-            return caches.delete(key);
-          }
+    event.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys.map(key => {
+                    if (key !== CACHE_NAME) {
+                        console.log('Eliminando caché antigua:', key);
+                        return caches.delete(key);
+                    }
+                })
+            );
         })
-      );
-    })
-  );
+    );
 });
 
 // Manejar solicitudes `GET` y `POST`
 self.addEventListener('fetch', event => {
-  if (event.request.method === 'POST') {
-      event.respondWith(
-          fetch(event.request).catch(() => {
-              return guardarSolicitudOffline(event.request);
-          })
-      );
-  } else {
-      event.respondWith(
-          caches.match(event.request).then(response => {
-              return response || fetch(event.request);
-          })
-      );
-  }
+    if (event.request.method === 'POST') {
+        event.respondWith(
+            fetch(event.request).catch(() => guardarSolicitudOffline(event.request))
+        );
+    } else {
+        event.respondWith(
+            caches.match(event.request).then(response => response || fetch(event.request))
+        );
+    }
 });
 
-// Guardar solicitudes POST offline
-function guardarSolicitudOffline(request) {
-  return request.clone().json().then(body => {
-      const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
-      offlineRequests.push({
-          url: request.url,
-          method: request.method,
-          body: body,
-      });
-      localStorage.setItem('offlineRequests', JSON.stringify(offlineRequests));
-      console.log('Solicitud POST guardada para sincronización offline:', request.url);
+// Guardar solicitudes `POST` offline
+async function guardarSolicitudOffline(request) {
+    const db = await dbPromise;
+    const clonedRequest = request.clone();
+    const body = await clonedRequest.text();
+    await db.add('requests', {
+        url: clonedRequest.url,
+        method: clonedRequest.method,
+        headers: [...clonedRequest.headers],
+        body,
+    });
+    console.log('Solicitud guardada en IndexedDB:', clonedRequest.url);
 
-      return new Response(
-          JSON.stringify({ status: 'offline', message: 'Solicitud almacenada para sincronización.' }),
-          { headers: { 'Content-Type': 'application/json' } }
-      );
-  }).catch(error => {
-      console.error('Error al guardar la solicitud offline:', error);
-  });
+    return new Response(
+        JSON.stringify({ status: 'offline', message: 'Solicitud almacenada para sincronización.' }),
+        { headers: { 'Content-Type': 'application/json' } }
+    );
 }
 
-// Sincronizar solicitudes offline al recuperar conexión
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-tasks') {
-      event.waitUntil(sincronizarSolicitudesOffline());
-  }
-});
+async function sincronizarSolicitudesOffline() {
+  const db = await dbPromise;
+  const requests = await db.getAll('requests');
 
-function sincronizarSolicitudesOffline() {
-  const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
-  const promesas = offlineRequests.map(request => {
+  const promesas = requests.map(request => {
+      const headers = new Headers();
+      request.headers.forEach(([key, value]) => headers.append(key, value));
+
       return fetch(request.url, {
           method: request.method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(request.body),
+          headers: headers,
+          body: request.body,
       })
-      .then(() => {
-          console.log('Solicitud sincronizada con éxito:', request.url);
-      })
-      .catch(error => {
-          console.error('Error al sincronizar solicitud:', error);
-      });
+          .then(() => {
+              console.log('Solicitud sincronizada:', request.url);
+              // Eliminar solicitud de IndexedDB después de sincronizar
+              return db.delete('requests', request.id);
+          })
+          .catch(error => {
+              console.error('Error al sincronizar solicitud:', error);
+          });
   });
 
+  // Esperar a que todas las promesas terminen
   return Promise.all(promesas).then(() => {
-      // Limpiar solicitudes locales solo si todas fueron exitosas
-      localStorage.removeItem('offlineRequests');
-      console.log('Todas las solicitudes sincronizadas.');
+      console.log('Sincronización completa.');
   });
 }
+
+
+// Manejar evento de sincronización
+self.addEventListener('sync', event => {
+    if (event.tag === 'sync-tasks') {
+        event.waitUntil(sincronizarSolicitudesOffline());
+    }
+});

@@ -19,27 +19,14 @@
 </head>
 
 <body>
-    <!-- Registro del Service Worker -->
     <script>
-if ('serviceWorker' in navigator && 'SyncManager' in window) {
-    navigator.serviceWorker.register('/static/service-worker.js').then(sw => {
-        console.log('Service Worker registrado:', sw.scope);
-
-        window.addEventListener('offline', () => {
-            console.warn('El dispositivo está offline. Las solicitudes se guardarán localmente.');
-        });
-
-        window.addEventListener('online', () => {
-            console.log('El dispositivo está online. Intentando sincronizar tareas...');
-            navigator.serviceWorker.ready.then(registration => {
-                registration.sync.register('sync-tasks');
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            navigator.serviceWorker.register('/static/service-worker.js').then(sw => {
+                console.log('Service Worker registrado:', sw.scope);
+            }).catch(error => {
+                console.error('Error al registrar el Service Worker:', error);
             });
-        });
-    }).catch(error => {
-        console.error('Error al registrar el Service Worker:', error);
-    });
-}
-
+        }
     </script>
 
     <header>
@@ -47,31 +34,19 @@ if ('serviceWorker' in navigator && 'SyncManager' in window) {
     </header>
 
     <main>
+        <div id="offline-alert" style="display: none; color: red; text-align: center;">
+            Estás sin conexión a Internet. Algunas funcionalidades pueden no estar disponibles.
+        </div>
 
-      <div id="offline-alert" style="display: none; color: red; text-align: center;">
-        Estás sin conexión a Internet. Algunas funcionalidades pueden no estar disponibles.
-    </div>
-    
-        <!-- Formulario para añadir una nueva tarea -->
         <form id="task-form" method="POST">
             {% csrf_token %}
             <input type="text" id="task" placeholder="Agregar tarea" required>
             <button type="submit">Agregar tarea</button>
         </form>
 
-        <!-- Barra de búsqueda -->
-        <input type="text" id="search-bar" placeholder="Buscar tarea..." onkeyup="searchTasks()">
-
-        <!-- Botón de papelera general -->
-        <button id="delete-selected" style="display: none;">
-            🗑️ Eliminar seleccionadas
-        </button>
-
-        <!-- Lista de tareas -->
         <ul id="task-list"></ul>
     </main>
 
-    <!-- Script personalizado -->
     <script src="{% static 'js/app.js' %}"></script>
 </body>
 
