@@ -1,7 +1,7 @@
 {
-  "name": "My PWA App",
-  "short_name": "PWA",
-  "description": "My Progressive Web App",
+  "name": "To-Do List",
+  "short_name": "ToDo",
+  "description": "A simple To-Do List PWA",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -11,6 +11,12 @@
       "src": "/static/images/icon.png",
       "sizes": "192x192",
       "type": "image/png"
+    },
+    {
+      "src": "/static/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
+  

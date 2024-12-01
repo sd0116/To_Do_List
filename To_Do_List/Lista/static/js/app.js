@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadTasks();
-
+ 
     function handleFormSubmit(e) {
         e.preventDefault();
         const task = document.getElementById('task').value;
@@ -39,9 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
         offlineTasks.push(task);
         localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks));
-    
-        // Actualizar la interfaz de usuario para mostrar la tarea localmente
-        addTaskToUI(task, true);
+        console.log(`Tarea guardada localmente: ${task}`);
     }
     
     function addTaskToUI(task, isOffline = false) {
@@ -82,18 +80,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     
-        // Limpiar las tareas almacenadas localmente después de sincronizarlas
-        localStorage.removeItem('offlineTasks');
+        localStorage.removeItem('offlineTasks'); // Limpiar las tareas locales después de sincronizarlas
     });
 
     
     window.addEventListener('offline', () => {
-        document.getElementById('connection-status').style.display = 'block';
+        document.getElementById('offline-alert').style.display = 'block';
     });
     
     window.addEventListener('online', () => {
-        document.getElementById('connection-status').style.display = 'none';
+        document.getElementById('offline-alert').style.display = 'none';
     });
+    
     
 
 
