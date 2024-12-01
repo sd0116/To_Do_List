@@ -1,0 +1,143 @@
+/* Diseño general */
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #4a90e2;
+    margin-bottom: 20px;
+}
+
+/* Formulario para añadir tarea */
+form {
+    margin-bottom: 20px;
+}
+
+form input[type="text"] {
+    width: 60%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+form button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #28a745;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+form button:hover {
+    background-color: #218838;
+}
+
+/* Barra de búsqueda */
+input#search-bar {
+    width: 60%;
+    padding: 10px;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de papelera general */
+#delete-selected {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: white;
+    background-color: #dc3545;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 20px auto; /* Centra el botón */
+    display: block;
+    transition: background-color 0.3s ease;
+    display: none; /* Ocultar por defecto */
+}
+
+#delete-selected:hover {
+    background-color: #c82333;
+}
+
+/* Lista de tareas */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* Elemento de la lista */
+li {
+    padding: 10px 20px;
+    margin: 10px auto;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 60%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+li:hover {
+    background-color: #f9f9f9;
+}
+
+/* Botones de acción */
+li button {
+    padding: 5px 10px;
+    font-size: 0.9rem;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+li button:first-of-type {
+    background-color: #007bff; /* Botón editar */
+}
+
+li button:first-of-type:hover {
+    background-color: #0056b3;
+}
+
+li button:last-of-type {
+    background-color: #dc3545; /* Botón eliminar */
+}
+
+li button:last-of-type:hover {
+    background-color: #c82333;
+}
+
+li button i {
+    margin: 0;
+    padding: 0;
+}
+
+/* Checkbox */
+.task-checkbox {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* Estilo para tareas completadas */
+.task-title.completed {
+    text-decoration: line-through;
+    color: #aaa;
+}
