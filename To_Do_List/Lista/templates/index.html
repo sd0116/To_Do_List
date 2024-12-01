@@ -21,15 +21,13 @@
 <body>
     <!-- Registro del Service Worker -->
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                })
-                .catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                });
-        }
+if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.register('/static/service-worker.js').then(sw => {
+        console.log('Service Worker registrado:', sw.scope);
+    }).catch(error => {
+        console.error('Error al registrar el Service Worker:', error);
+    });
+}
     </script>
 
     <header>
