@@ -10,27 +10,11 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#000000">
 
-
-
-
-
+    <!-- Librería externa de Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 
 <body>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/static/service-worker.js')
-        .then(function(registration) {
-          console.log('Service Worker registered with scope:', registration.scope);
-        })
-        .catch(function(error) {
-          console.log('Service Worker registration failed:', error);
-        });
-    }
-  </script>
-      
     <header>
         <h1>To-Do List</h1>
     </header>
@@ -47,7 +31,7 @@
         <input type="text" id="search-bar" placeholder="Buscar tarea..." onkeyup="searchTasks()">
 
         <!-- Botón de papelera general -->
-        <button id="delete-selected">
+        <button id="delete-selected" style="display: none;">
             🗑️ Eliminar seleccionadas
         </button>
 
@@ -55,10 +39,22 @@
         <ul id="task-list"></ul>
     </main>
 
+    <!-- Scripts y estilos -->
     <script src="/static/js/app.js"></script>
-<link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
 
-
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
 </body>
 
 </html>
