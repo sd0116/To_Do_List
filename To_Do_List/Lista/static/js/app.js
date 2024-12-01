@@ -51,6 +51,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+
+    const form = document.getElementById('task-form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+    const task = document.getElementById('task').value;
+
+    if (navigator.onLine) {
+        enviarTareaAlServidor(task);
+    } else {
+        saveTaskLocally(task);
+        alert('Tarea guardada localmente. Se sincronizará cuando estés online.');
+    }
+        });
+    } else {
+        console.error('El formulario con ID "task-form" no se encontró.');
+    }
+    
+
     // Guardar tareas localmente
     function saveTaskLocally(task) {
         const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
@@ -59,27 +78,30 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Tarea guardada localmente:', task);
     }
 
-    // Sincronizar tareas almacenadas cuando vuelva la conexión
-    window.addEventListener('online', () => {
-        const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
-        offlineTasks.forEach(task => {
-            fetch('/add-task/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({ task: task }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    console.log('Tarea sincronizada:', task);
-                }
-            })
-            .catch(error => console.error('Error al sincronizar tarea:', task, error));
-        });
 
-        localStorage.removeItem('offlineTasks'); // Limpiar tareas locales después de sincronizarlas
-    });
+
+    function enviarTareaAlServidor(task) {
+        fetch('/add-task/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ task: task }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                loadTasks(); // Recargar tareas
+                document.getElementById('task').value = ''; // Limpiar el campo
+                console.log('Tarea enviada al servidor:', task);
+            }
+        })
+        .catch(error => console.error('Error al enviar la tarea:', error));
+    }
+    
+
+
+    // Sincronizar tareas almacenadas cuando vuelva la conexión
+
 });
