@@ -1,10 +1,11 @@
 const archivosACachear = [
-  '/',
-  '/index.html',
-  '/static/icons/icon-192x192.png',  // Verifica que esta ruta sea correcta
-  '/styles.css',
-  '/scripts.js',
+  '/',                                // Página principal
+  '/index.html',                      // Archivo HTML principal
+  '/static/icons/icon-192x192.png',   // Ícono
+  '/static/css/styles.css',           // Hoja de estilos
+  '/static/js/app.js',            // Archivo de JavaScript
 ];
+
 
 self.addEventListener('install', evento => {
   evento.waitUntil(
