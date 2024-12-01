@@ -24,10 +24,22 @@
 if ('serviceWorker' in navigator && 'SyncManager' in window) {
     navigator.serviceWorker.register('/static/service-worker.js').then(sw => {
         console.log('Service Worker registrado:', sw.scope);
+
+        window.addEventListener('offline', () => {
+            console.warn('El dispositivo está offline. Las solicitudes se guardarán localmente.');
+        });
+
+        window.addEventListener('online', () => {
+            console.log('El dispositivo está online. Intentando sincronizar tareas...');
+            navigator.serviceWorker.ready.then(registration => {
+                registration.sync.register('sync-tasks');
+            });
+        });
     }).catch(error => {
         console.error('Error al registrar el Service Worker:', error);
     });
 }
+
     </script>
 
     <header>

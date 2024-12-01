@@ -36,59 +36,67 @@ self.addEventListener('activate', event => {
 // Manejar solicitudes `GET` y `POST`
 self.addEventListener('fetch', event => {
   if (event.request.method === 'POST') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return guardarSolicitudOffline(event.request);
-      })
-    );
+      event.respondWith(
+          fetch(event.request).catch(() => {
+              return guardarSolicitudOffline(event.request);
+          })
+      );
   } else {
-    event.respondWith(
-      caches.match(event.request).then(response => {
-        return response || fetch(event.request);
-      })
-    );
+      event.respondWith(
+          caches.match(event.request).then(response => {
+              return response || fetch(event.request);
+          })
+      );
   }
 });
 
-// Guardar solicitudes `POST` offline
+// Guardar solicitudes POST offline
 function guardarSolicitudOffline(request) {
-  return request.clone().text().then(body => {
-    const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
-    offlineRequests.push({
-      url: request.url,
-      method: request.method,
-      body: body,
-    });
-    localStorage.setItem('offlineRequests', JSON.stringify(offlineRequests));
-    console.log('Solicitud guardada para sincronización offline:', request.url);
+  return request.clone().json().then(body => {
+      const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
+      offlineRequests.push({
+          url: request.url,
+          method: request.method,
+          body: body,
+      });
+      localStorage.setItem('offlineRequests', JSON.stringify(offlineRequests));
+      console.log('Solicitud POST guardada para sincronización offline:', request.url);
 
-    return new Response(
-      JSON.stringify({ status: 'offline', message: 'Solicitud almacenada para sincronización.' }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+      return new Response(
+          JSON.stringify({ status: 'offline', message: 'Solicitud almacenada para sincronización.' }),
+          { headers: { 'Content-Type': 'application/json' } }
+      );
+  }).catch(error => {
+      console.error('Error al guardar la solicitud offline:', error);
   });
 }
 
 // Sincronizar solicitudes offline al recuperar conexión
 self.addEventListener('sync', event => {
   if (event.tag === 'sync-tasks') {
-    event.waitUntil(sincronizarSolicitudesOffline());
+      event.waitUntil(sincronizarSolicitudesOffline());
   }
 });
 
-// Sincronizar solicitudes almacenadas
 function sincronizarSolicitudesOffline() {
   const offlineRequests = JSON.parse(localStorage.getItem('offlineRequests')) || [];
   const promesas = offlineRequests.map(request => {
-    return fetch(request.url, {
-      method: request.method,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: request.body,
-    });
+      return fetch(request.url, {
+          method: request.method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(request.body),
+      })
+      .then(() => {
+          console.log('Solicitud sincronizada con éxito:', request.url);
+      })
+      .catch(error => {
+          console.error('Error al sincronizar solicitud:', error);
+      });
   });
 
   return Promise.all(promesas).then(() => {
-    console.log('Sincronización completa.');
-    localStorage.removeItem('offlineRequests');
+      // Limpiar solicitudes locales solo si todas fueron exitosas
+      localStorage.removeItem('offlineRequests');
+      console.log('Todas las solicitudes sincronizadas.');
   });
 }
