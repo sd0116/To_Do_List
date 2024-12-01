@@ -36,26 +36,50 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 body: new URLSearchParams({ task: task }),
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        loadTasks(); // Recargar tareas
-                        document.getElementById('task').value = ''; // Limpiar el campo
-                    }
-                })
-                .catch(error => console.error('Error al enviar la tarea:', error));
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    loadTasks(); // Recargar tareas
+                    document.getElementById('task').value = ''; // Limpiar el campo
+                }
+            })
+            .catch(error => console.error('Error al enviar la tarea:', error));
         } else {
-            alert('Estás offline. Las tareas se guardarán para sincronización.');
+            // Guardar tarea localmente si está offline
+            saveTaskLocally(task);
+            alert('Tarea guardada localmente. Se sincronizará cuando estés online.');
         }
     });
 
-    // Registrar el evento de sincronización
-    if ('serviceWorker' in navigator && 'SyncManager' in window) {
-        navigator.serviceWorker.ready.then(registration => {
-            window.addEventListener('online', () => {
-                console.log('El dispositivo está online. Intentando sincronizar tareas...');
-                registration.sync.register('sync-tasks');
-            });
-        });
+    // Guardar tareas localmente
+    function saveTaskLocally(task) {
+        const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
+        offlineTasks.push(task); // Agregar tarea al array local
+        localStorage.setItem('offlineTasks', JSON.stringify(offlineTasks)); // Guardar en localStorage
+        console.log('Tarea guardada localmente:', task);
     }
+
+    // Sincronizar tareas almacenadas cuando vuelva la conexión
+    window.addEventListener('online', () => {
+        const offlineTasks = JSON.parse(localStorage.getItem('offlineTasks')) || [];
+        offlineTasks.forEach(task => {
+            fetch('/add-task/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ task: task }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log('Tarea sincronizada:', task);
+                }
+            })
+            .catch(error => console.error('Error al sincronizar tarea:', task, error));
+        });
+
+        localStorage.removeItem('offlineTasks'); // Limpiar tareas locales después de sincronizarlas
+    });
 });
