@@ -1,4 +1,5 @@
 from django.http import JsonResponse, QueryDict
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from .models import Task
 from django.shortcuts import render
@@ -24,34 +25,33 @@ def add_task(request):
 # Función para eliminar una tarea
 @csrf_exempt
 def delete_task(request, task_id):
-    if request.method == 'DELETE':
-        task = Task.objects.get(id=task_id)
-        task.delete()
-        return JsonResponse({"status": "success"})
+    if request.method == 'POST':
+        task_ids = request.POST.getlist('task_ids[]')  # Cambiar según cómo se envíen los datos
+        Task.objects.filter(id__in=task_ids).delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 # Función para actualizar una tarea
 @csrf_exempt
 def update_task(request, task_id):
-    if request.method == 'PUT':
-        task = Task.objects.get(id=task_id)
-        # Django no maneja bien los datos PUT, por lo que usamos QueryDict para procesarlos
-        put_data = QueryDict(request.body)
-        new_title = put_data.get('title')
-        if new_title:
-            task.title = new_title
+    if request.method == 'POST':
+        task = get_object_or_404(Task, id=task_id)
+        title = request.POST.get('title')
+        if title:
+            task.title = title
             task.save()
-            return JsonResponse({"status": "success"})
-        return JsonResponse({"status": "error", "message": "Title is required"}, status=400)
+            return JsonResponse({'status': 'success', 'id': task.id, 'title': task.title})
+        return JsonResponse({'status': 'error', 'message': 'Título no proporcionado'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
 # Función para eliminar múltiples tareas
 @csrf_exempt
 def delete_multiple_tasks(request):
     if request.method == 'POST':
-        data = json.loads(request.body)  # Procesar los datos enviados en el cuerpo de la solicitud
-        task_ids = data.get('task_ids', [])  # Obtener la lista de IDs de tareas
-
+        task_ids = request.POST.getlist('task_ids[]')
         if task_ids:
-            Task.objects.filter(id__in=task_ids).delete()  # Eliminar las tareas cuyos IDs están en la lista
-            return JsonResponse({"status": "success", "deleted_count": len(task_ids)})
+            Task.objects.filter(id__in=task_ids).delete()
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'status': 'error', 'message': 'No se proporcionaron IDs'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
 
-        return JsonResponse({"status": "error", "message": "No tasks selected"}, status=400)

@@ -20,7 +20,6 @@
 
 <body>
     <script>
-        // Registrar el Service Worker
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
             navigator.serviceWorker.register('/static/service-worker.js').then(sw => {
                 console.log('Service Worker registrado:', sw.scope);
@@ -35,26 +34,21 @@
     </header>
 
     <main>
-        <!-- Alerta de conexión offline -->
         <div id="offline-alert" style="display: none; color: red; text-align: center;">
             Estás sin conexión a Internet. Algunas funcionalidades pueden no estar disponibles.
         </div>
 
-        <!-- Formulario para agregar tareas -->
         <form id="task-form" method="POST">
             {% csrf_token %}
             <input type="text" id="task" placeholder="Agregar tarea" required>
             <button type="submit">Agregar tarea</button>
         </form>
 
-        <!-- Lista de tareas -->
         <ul id="task-list"></ul>
 
-        <!-- Botón para eliminar tareas seleccionadas -->
         <button id="delete-selected" style="display: none;">Eliminar seleccionadas</button>
     </main>
 
-    <!-- Script personalizado -->
     <script src="{% static 'js/app.js' %}"></script>
 </body>
 
