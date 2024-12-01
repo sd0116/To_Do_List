@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Función para cargar tareas
     loadTasks();
 
+    // Función para cargar las tareas al iniciar la página
     function loadTasks() {
         fetch('/tasks/')
             .then(response => response.json())
@@ -25,67 +25,31 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // Configura los eventos dinámicos
+    // Configura los eventos dinámicos para los botones
     function setupDynamicListeners() {
-        // Listener para botones de editar tarea
+        // Listener para editar tareas
         document.querySelectorAll('.edit-task').forEach(button => {
             button.addEventListener('click', function () {
                 const id = this.dataset.id;
                 const title = this.dataset.title;
-                editTask(id, title);
+                editTask(id, title); // Llama a la función `editTask`
             });
         });
 
-        // Listener para botones de eliminar tarea
+        // Listener para eliminar tareas
         document.querySelectorAll('.delete-task').forEach(button => {
             button.addEventListener('click', function () {
                 const id = this.dataset.id;
-                deleteTask(id);
+                deleteTask(id); // Llama a la función `deleteTask`
             });
         });
+
+        // Listener para checkboxes
+        setupCheckboxListeners();
     }
 
-    // Función para editar una tarea
-    function editTask(id, currentTitle) {
-        const newTitle = prompt('Edita la tarea:', currentTitle);
-        if (newTitle && newTitle.trim() !== "") {
-            fetch(`/update-task/${id}/`, {
-                method: 'PUT',
-                headers: {
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    'title': newTitle
-                })
-            }).then(() => {
-                loadTasks();
-            });
-        }
-    }
-
-    // Función para eliminar una tarea
-    function deleteTask(id) {
-        fetch(`/delete-task/${id}/`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        }).then(() => {
-            loadTasks();
-        });
-    }
-
-    // Configura el evento del formulario para agregar una nueva tarea
-    const form = document.getElementById('task-form');
-
-    // Elimina cualquier listener previo
-    form.removeEventListener('submit', handleFormSubmit);
-
-    // Añade el listener de forma única
-    form.addEventListener('submit', handleFormSubmit);
-
-    function handleFormSubmit(e) {
+    // Función para añadir una nueva tarea
+    document.getElementById('task-form').addEventListener('submit', function (e) {
         e.preventDefault();
         const task = document.getElementById('task').value;
 
@@ -105,5 +69,86 @@ document.addEventListener('DOMContentLoaded', function () {
                     document.getElementById('task').value = ''; // Limpiar el campo de entrada
                 }
             });
+    });
+
+    // Función para eliminar una tarea individual
+    window.deleteTask = function (id) {
+        fetch(`/delete-task/${id}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        }).then(() => {
+            loadTasks(); // Recargar la lista de tareas después de eliminar
+        });
+    };
+
+    // Función para editar una tarea
+    window.editTask = function (id, currentTitle) {
+        const newTitle = prompt('Edita la tarea:', currentTitle);
+        if (newTitle && newTitle.trim() !== "") {
+            fetch(`/update-task/${id}/`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    'title': newTitle
+                })
+            }).then(() => {
+                loadTasks(); // Recargar la lista de tareas después de actualizar
+            });
+        }
+    };
+
+    // Función para buscar tareas
+    window.searchTasks = function () {
+        const searchValue = document.getElementById('search-bar').value.toLowerCase();
+        const tasks = document.querySelectorAll('#task-list li');
+
+        tasks.forEach(task => {
+            const taskText = task.querySelector('.task-title').innerText.toLowerCase();
+            if (taskText.includes(searchValue)) {
+                task.style.display = 'flex';
+            } else {
+                task.style.display = 'none';
+            }
+        });
+    };
+
+    // Configurar los eventos de los checkboxes
+    function setupCheckboxListeners() {
+        const checkboxes = document.querySelectorAll('.task-checkbox');
+        const deleteSelectedButton = document.getElementById('delete-selected');
+
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const selectedTasks = document.querySelectorAll('.task-checkbox:checked');
+                deleteSelectedButton.style.display = selectedTasks.length > 0 ? 'block' : 'none';
+            });
+        });
     }
+
+    // Función para eliminar tareas seleccionadas
+    document.getElementById('delete-selected').addEventListener('click', function () {
+        const selectedTasks = Array.from(document.querySelectorAll('.task-checkbox:checked')).map(cb => cb.dataset.id);
+
+        if (selectedTasks.length > 0) {
+            fetch('/delete-tasks/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task_ids: selectedTasks })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        loadTasks(); // Recargar las tareas después de eliminar
+                        document.getElementById('delete-selected').style.display = 'none'; // Ocultar el botón
+                    }
+                });
+        }
+    });
 });
