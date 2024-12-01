@@ -250,3 +250,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+if ('serviceWorker' in navigator && 'SyncManager' in window) {
+    navigator.serviceWorker.ready.then(swRegistration => {
+      return swRegistration.sync.register('sync-tasks');
+    }).catch(err => {
+      console.error('Error al registrar sincronización:', err);
+    });
+  }
