@@ -8,22 +8,23 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(tasks => {
                 const taskList = document.getElementById('task-list');
                 taskList.innerHTML = ''; // Limpia la lista antes de cargar
-
+    
                 tasks.forEach(task => {
                     const li = document.createElement('li');
                     li.innerHTML = `
                         <input type="checkbox" class="task-checkbox" data-id="${task.id}">
                         <span class="task-title">${task.title}</span>
-                        <button onclick="editTask(${task.id}, '${task.title}')">Editar</button>
-                        <button onclick="deleteTask(${task.id})">Eliminar</button>
+                        <button class="edit-task" data-id="${task.id}" data-title="${task.title}">Editar</button>
+                        <button class="delete-task" data-id="${task.id}">Eliminar</button>
                     `;
                     taskList.appendChild(li);
                 });
-
-                // Configurar el evento para mostrar/ocultar el botón de papelera general
-                setupCheckboxListeners();
+    
+                // Configura los eventos dinámicos para los botones
+                setupDynamicListeners();
             });
     }
+    
 
     // Función para añadir una nueva tarea
     document.getElementById('task-form').addEventListener('submit', function (e) {
